@@ -1,223 +1,282 @@
-import React, { useState } from 'react';
-import { validateForm } from '../../utils/validation';
-import './Contact.css';
+import React, { useState, useRef, useEffect } from "react";
+import { gsap } from "gsap";
+import axios from "axios";
 
-const ContactForm = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
+export default function Contact() {
+  const [showContent, setShowContent] = useState(false);
+  const mainRef = useRef(null);
+  const canvasRef = useRef(null);
+  const mouse = useRef({ x: null, y: null });
+
   
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let rafId = null;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
+
+    const particleCount = 200;
+    const particles = [];
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2.5 + 0.8,
+        dx: (Math.random() - 0.5) * 0.8,
+        dy: (Math.random() - 0.5) * 0.8,
+      });
+    }
+
+    const handleMouseMove = (e) => {
+      mouse.current.x = e.clientX;
+      mouse.current.y = e.clientY;
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+
+    const animate = () => {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "#FF6EC7";
+        ctx.fill();
+
+        p.x += p.dx;
+        p.y += p.dy;
+
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+
+        if (mouse.current.x != null && mouse.current.y != null) {
+          const distX = p.x - mouse.current.x;
+          const distY = p.y - mouse.current.y;
+          const distance = Math.sqrt(distX * distX + distY * distY);
+
+          if (distance < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(209,71,255,${1 - distance / 120})`;
+            ctx.lineWidth = 2.5;
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.current.x, mouse.current.y);
+            ctx.stroke();
+          }
+        }
+      });
+
+      rafId = requestAnimationFrame(animate);
+    };
+
+    animate();
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("resize", resizeCanvas);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  
+  useEffect(() => {
+    if (mainRef.current) {
+      gsap.fromTo(
+        mainRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1.2,
+          ease: "power2.out",
+          onComplete: () => setShowContent(true),
+        }
+      );
+    }
+  }, []);
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const validationErrors = validateForm(formData);
+
+    const validationErrors = {};
+    if (!formData.fullName) validationErrors.fullName = "Full name required";
+    if (!formData.email) validationErrors.email = "Email required";
+    if (!formData.subject) validationErrors.subject = "Subject required";
+    if (!formData.message) validationErrors.message = "Message required";
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
     setIsSubmitting(true);
-    
-    setTimeout(() => {
-      console.log('Form submitted:', formData);
-      setSubmitStatus('success');
-      setFormData({
-        fullName: '',
-        email: '',
-        subject: '',
-        message: ''
-      });
-      setIsSubmitting(false);
+
+    try {
       
+      const res = await axios.post("http://localhost:8080/api/contact", {
+        userName: formData.fullName,
+        userEmail: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
+      if (res.status === 200) {
+        setSubmitStatus("success");
+        setFormData({ fullName: "", email: "", subject: "", message: "" });
+      } else {
+        setSubmitStatus("error");
+      }
+    } catch (error) {
+      console.error(error);
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
       setTimeout(() => setSubmitStatus(null), 5000);
-    }, 2000);
+    }
   };
 
   return (
-    <div className="contact-form-section">
-      <h2>Send us a message</h2>
-      
-      {submitStatus === 'success' && (
-        <div className="alert alert-success">
-          Message sent successfully! We'll get back to you soon.
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="contact-form">
-        <div className="form-group">
-          <label htmlFor="fullName">Full Name</label>
-          <input
-            type="text"
-            id="fullName"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            placeholder="Your full name"
-            className={errors.fullName ? 'error' : ''}
-          />
-          {errors.fullName && <span className="error-message">{errors.fullName}</span>}
-        </div>
+    <div className="h-screen w-screen relative bg-black text-white overflow-hidden">
+      <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
-        <div className="form-group">
-          <label htmlFor="email">Email Address</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="your.email@example.com"
-            className={errors.email ? 'error' : ''}
-          />
-          {errors.email && <span className="error-message">{errors.email}</span>}
-        </div>
+      <div ref={mainRef} className="relative z-10 px-8 pt-28 max-w-6xl mx-auto">
+        <section className="text-center mb-16">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#FF6EC7] to-[#D147FF] bg-clip-text text-transparent">
+            Get In Touch
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            Have questions about our club? Send us a message and we will respond as soon as possible.
+          </p>
+        </section>
 
-        <div className="form-group">
-          <label htmlFor="subject">Subject</label>
-          <input
-            type="text"
-            id="subject"
-            name="subject"
-            value={formData.subject}
-            onChange={handleChange}
-            placeholder="What is this about?"
-            className={errors.subject ? 'error' : ''}
-          />
-          {errors.subject && <span className="error-message">{errors.subject}</span>}
-        </div>
+        <div className="grid md:grid-cols-2 gap-16">
+          {/* Contact Info */}
+          <div className="space-y-8">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-[#FF6EC7] to-[#D147FF] bg-clip-text text-transparent">
+              Contact Information
+            </h2>
 
-        <div className="form-group">
-          <label htmlFor="message">Message</label>
-          <textarea
-            id="message"
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            placeholder="Tell us more about your inquiry..."
-            rows="5"
-            className={errors.message ? 'error' : ''}
-          />
-          {errors.message && <span className="error-message">{errors.message}</span>}
-        </div>
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <svg
+                  className="w-6 h-6 text-[#FF6EC7]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <div>
+                  <p>Krishnankoil, Srivilliputhur, Tamil Nadu</p>
+                  <p>626126</p>
+                </div>
+              </div>
 
-        <button type="submit" className="submit-btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Sending...' : 'SUBMIT'}
-          <svg className="submit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22,2 15,22 11,13 2,9"></polygon>
-          </svg>
-        </button>
-      </form>
-    </div>
-  );
-};
-
-const ContactInfo = () => {
-  return (
-    <div className="contact-info-section">
-      <h2>Contact Information</h2>
-      
-      <div className="organization-info">
-        <h3>YOUR CLUB NAME</h3>
-        
-        <div className="contact-item">
-          <div className="contact-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
+              <div className="flex items-start gap-4">
+                <svg
+                  className="w-6 h-6 text-[#FF6EC7]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <a href="mailto:enexus@klu.ac.in" className="hover:underline">
+                  enexus@klu.ac.in
+                </a>
+              </div>
+            </div>
           </div>
-          <div className="contact-details">
-            <p>Krishnankoil, Srivilliputhur, Tamil Nadu</p>
-            <p>626126</p>
-          </div>
-        </div>
 
-        <div className="contact-item">
-          <div className="contact-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-          </div>
-          <div className="contact-details">
-            <p>yourclub@college.edu</p>
-          </div>
-        </div>
+          {/* Contact Form */}
+          <div className="space-y-6">
+            {submitStatus === "success" && (
+              <div className="p-4 rounded-lg bg-green-500 bg-opacity-20 text-green-600 font-semibold">
+                Message sent successfully! We'll get back to you soon.
+              </div>
+            )}
+            {submitStatus === "error" && (
+              <div className="p-4 rounded-lg bg-red-500 bg-opacity-20 text-red-600 font-semibold">
+                Something went wrong. Please try again later.
+              </div>
+            )}
 
-        <div className="contact-item">
-          <div className="contact-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-            </svg>
-          </div>
-          <div className="contact-details">
-            <p>+1 (555) 123-4567</p>
-          </div>
-        </div>
-      </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <input
+                type="text"
+                name="fullName"
+                placeholder="Full Name"
+                value={formData.fullName}
+                onChange={handleChange}
+                className={`w-full p-4 rounded-lg bg-gray-900 text-white border ${
+                  errors.fullName ? "border-red-500" : "border-gray-700"
+                }`}
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full p-4 rounded-lg bg-gray-900 text-white border ${
+                  errors.email ? "border-red-500" : "border-gray-700"
+                }`}
+              />
+              <input
+                type="text"
+                name="subject"
+                placeholder="Subject"
+                value={formData.subject}
+                onChange={handleChange}
+                className={`w-full p-4 rounded-lg bg-gray-900 text-white border ${
+                  errors.subject ? "border-red-500" : "border-gray-700"
+                }`}
+              />
+              <textarea
+                name="message"
+                placeholder="Message"
+                value={formData.message}
+                onChange={handleChange}
+                rows="5"
+                className={`w-full p-4 rounded-lg bg-gray-900 text-white border ${
+                  errors.message ? "border-red-500" : "border-gray-700"
+                }`}
+              />
 
-      <div className="association-info">
-        <h4>Association for Computing Machinery</h4>
-        <p className="chapter-link">
-          <a href="#" className="club-link">YOUR CLUB Student Chapter</a>
-        </p>
-      </div>
-
-      <div className="social-media">
-        <h4>Follow Us</h4>
-        <div className="social-links">
-          <a href="https://linkedin.com/company/yourclub" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a href="https://instagram.com/yourclub" target="_blank" rel="noopener noreferrer">Instagram</a>
-          <a href="https://facebook.com/yourclub" target="_blank" rel="noopener noreferrer">Facebook</a>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Contact = () => {
-  return (
-    <div className="contact-page">
-      <div className="contact-hero">
-        <div className="container">
-          <h1>Get In Touch</h1>
-          <p>Have questions about our club? We would love to hear from you. Send us a message and we will respond as soon as possible.</p>
-        </div>
-      </div>
-      
-      <div className="contact-content">
-        <div className="container">
-          <div className="contact-grid">
-            <ContactInfo />
-            <ContactForm />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 px-8 bg-gradient-to-r from-blue-500 to-[#D147FF] rounded-lg font-bold hover:scale-105 transition-transform flex justify-center items-center gap-2"
+              >
+                {isSubmitting ? "Sending..." : "Submit"}
+              </button>
+            </form>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Contact;
+}
