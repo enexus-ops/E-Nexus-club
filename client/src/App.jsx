@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Contact from "./components/Contact/Contact";
-import AboutENexus from './components/About/AboutPage'; 
 import React from "react";
 import "./App.css"; 
 import EnexusLanding from "./components/EnexusLanding";
@@ -14,6 +13,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/" element={<EnexusLanding />} />
           <Route path="/About" element={<AboutENexus />} />
+          <Route path="/events" element={<EventsPage />} /> 
         </Routes>
       </Router>
     </>
