@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Contact from "./components/Contact/Contact";
-import AboutENexus from './components/About/AboutENexus'; 
+import AboutENexus from './components/About/AboutPage'; 
 import React from "react";
 import "./App.css"; 
 import EnexusLanding from "./components/EnexusLanding";
