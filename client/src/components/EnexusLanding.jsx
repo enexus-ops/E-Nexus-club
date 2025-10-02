@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
+import { Link } from "react-router-dom";
 
 export default function EnexusLanding() {
   const [showMain, setShowMain] = useState(false);
@@ -353,12 +354,20 @@ hover:from-blue-600 hover:to-[#FF6EC7] text-white p-3 rounded-lg shadow-lg trans
                   <li>
                     <a href="#teams" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>👥 Teams</a>
                   </li>
-                  <li>
+                  {/* <li>
                     <a href="#about" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>ℹ️ About</a>
                   </li>
                   <li>
                     <a href="#contact" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>📞 Contact</a>
-                  </li>
+                  </li> */}
+
+                  <Link to="/about" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">ℹ️ About
+                  
+                  </Link> 
+
+                  <Link to="/contact" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">📞 Contact
+                  
+                  </Link>
                   <li>
                     <a href="#events" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>📅 Events</a>
                   </li>

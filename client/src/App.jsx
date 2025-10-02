@@ -8,11 +8,11 @@ import EnexusLanding from "./components/EnexusLanding";
 function App() {
   return (
     <>
-      <EnexusLanding />
+      
       <Router>
         <Routes>
           <Route path="/contact" element={<Contact />} />
-          {/* ✅ Fixed the component name */}
+          <Route path="/" element={<EnexusLanding />} />
           <Route path="/About" element={<AboutENexus />} />
         </Routes>
       </Router>
