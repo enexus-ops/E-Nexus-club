@@ -314,9 +314,14 @@ hover:from-blue-600 hover:to-[#FF6EC7] text-white p-3 rounded-lg shadow-lg trans
 
                 {/* CTA */}
                 <section className="content-section text-center">
-                  <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+                  {/* <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
                     Join E-Nexus Today
-                  </button>
+                  </button> */}
+                  <Link to="/contact">
+  <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+    Join E-Nexus Today
+  </button>
+</Link>
                   <p className="text-gray-400 mt-4">
                     Ready to be part of something extraordinary?
                   </p>
@@ -351,15 +356,13 @@ hover:from-blue-600 hover:to-[#FF6EC7] text-white p-3 rounded-lg shadow-lg trans
                   Navigation
                 </h3>
                 <ul className="space-y-6">
-                  <li>
-                    <a href="#teams" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>👥 Teams</a>
-                  </li>
                   {/* <li>
-                    <a href="#about" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>ℹ️ About</a>
-                  </li>
-                  <li>
-                    <a href="#contact" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>📞 Contact</a>
+                    <a href="#teams" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>👥 Teams</a>
                   </li> */}
+                  <Link to="/teams" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">👥 Teams
+                  
+                  </Link>
+                  
 
                   <Link to="/about" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">ℹ️ About
                   
@@ -368,9 +371,9 @@ hover:from-blue-600 hover:to-[#FF6EC7] text-white p-3 rounded-lg shadow-lg trans
                   <Link to="/contact" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">📞 Contact
                   
                   </Link>
-                  <li>
-                    <a href="#events" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>📅 Events</a>
-                  </li>
+                  <Link to="/events" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">📅 Events
+                  
+                  </Link>
                 </ul>
               </nav>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
+import { Link } from "react-router-dom";
 
 export default function AboutPage() {
   const canvasRef = useRef(null);
@@ -118,14 +119,14 @@ export default function AboutPage() {
               Navigation
             </h3>
             <ul className="space-y-6">
-              <li>
+              {/* <li>
                 <a href="/" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all">
                   🏠 Home
                 </a>
               </li>
               <li>
-                <a href="/about" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all">
-                  ℹ About
+                <a href="/#teams" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all">
+                  👥 Teams
                 </a>
               </li>
               <li>
@@ -137,7 +138,25 @@ export default function AboutPage() {
                 <a href="/events" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all">
                   📅 Events
                 </a>
-              </li>
+              </li> */}
+              {/* <li>
+                    <a href="#teams" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2" onClick={() => setSidebarOpen(false)}>👥 Teams</a>
+                  </li> */}
+                  <Link to="/teams" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">👥 Teams
+                  
+                  </Link>
+                  
+
+                  <Link to="/about" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">ℹ️ About
+                  
+                  </Link> 
+
+                  <Link to="/contact" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">📞 Contact
+                  
+                  </Link>
+                  <Link to="/events" className="block text-xl text-gray-300 hover:text-white hover:bg-gray-800 p-4 rounded-lg transition-all duration-300 transform hover:translate-x-2">📅 Events
+                  
+                  </Link>
             </ul>
           </nav>
 
