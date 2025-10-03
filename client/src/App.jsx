@@ -9,14 +9,6 @@ import EventsPage from "./components/Event/EventsPage";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/" element={<EnexusLanding />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/events" element={<EventsPage />} />
-      </Routes>
-    </Router>
   );
 }
 
