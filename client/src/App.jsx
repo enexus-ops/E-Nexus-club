@@ -8,7 +8,7 @@ import EnexusLanding from "./components/EnexusLanding";
 function App() {
   return (
     <>
-      <EnexusLanding />
+      {/* <EnexusLanding /> */}
       <Router>
         <Routes>
           <Route path="/contact" element={<Contact />} />

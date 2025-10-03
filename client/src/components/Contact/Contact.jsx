@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import axios from "axios";
+import { FaUsers, FaInfoCircle, FaCalendarAlt } from "react-icons/fa";
+import { AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 
 export default function Contact() {
   const [showContent, setShowContent] = useState(false);
@@ -8,7 +10,9 @@ export default function Contact() {
   const canvasRef = useRef(null);
   const mouse = useRef({ x: null, y: null });
 
-  
+  // Sidebar toggle
+  const [open, setOpen] = useState(false);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -84,7 +88,6 @@ export default function Contact() {
     };
   }, []);
 
-  
   useEffect(() => {
     if (mainRef.current) {
       gsap.fromTo(
@@ -134,7 +137,6 @@ export default function Contact() {
     setIsSubmitting(true);
 
     try {
-      
       const res = await axios.post("http://localhost:8080/api/contact", {
         userName: formData.fullName,
         userEmail: formData.email,
@@ -160,13 +162,61 @@ export default function Contact() {
     <div className="h-screen w-screen relative bg-black text-white overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
+      {/* Sidebar Nav Button */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed top-4 left-4 z-50 p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+      >
+        <AiOutlineMenu size={24} />
+      </button>
+
+      {/* Sidebar Overlay */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-[#0f172a] text-white p-6 z-50 transform transition-transform duration-300 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <button
+          onClick={() => setOpen(false)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white"
+        >
+          <AiOutlineClose size={22} />
+        </button>
+
+        <h2 className="text-xl font-bold mb-8 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          Navigation
+        </h2>
+
+        <ul className="space-y-6">
+          <li className="flex items-center gap-3 hover:text-purple-400 cursor-pointer">
+            <FaUsers /> Teams
+          </li>
+          <li className="flex items-center gap-3 hover:text-purple-400 cursor-pointer">
+            <FaInfoCircle /> About
+          </li>
+          <li className="flex items-center gap-3 hover:text-purple-400 cursor-pointer">
+            <FaCalendarAlt /> Events
+          </li>
+        </ul>
+      </div>
+
+      {/* Contact Content */}
       <div ref={mainRef} className="relative z-10 px-8 pt-28 max-w-6xl mx-auto">
         <section className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#FF6EC7] to-[#D147FF] bg-clip-text text-transparent">
             Get In Touch
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Have questions about our club? Send us a message and we will respond as soon as possible.
+            Have questions about our club? Send us a message and we will respond
+            as soon as possible.
           </p>
         </section>
 
