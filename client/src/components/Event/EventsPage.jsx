@@ -1,38 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiArrowUp, FiEye } from "react-icons/fi";
-import styled, { createGlobalStyle, keyframes } from "styled-components";
-
-const GlobalStyle = createGlobalStyle`
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #000000;
-    color: #fff;
-    overflow-x: hidden;
-  }
-`;
-
-const gradientShift = keyframes`
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-`;
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-`;
-
-const shimmer = keyframes`
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-`;
-
-const pulse = keyframes`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-`;
+import { Search } from "lucide-react";
 
 const generateEventId = () => Math.random().toString(36).substr(2, 9);
 
@@ -141,501 +108,168 @@ const pastEvents = [
   }
 ];
 
-const PageContainer = styled.div`
-  min-height: 100vh;
-  padding-bottom: 4rem;
-  position: relative;
-  background: #000000;
+const ParticleBackground = () => {
+  const canvasRef = useRef(null);
+  const mouse = useRef({ x: null, y: null });
 
-  &::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-      radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-`;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let rafId = null;
 
-const HeaderContainer = styled.header`
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  backdrop-filter: blur(20px);
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
-  background-size: 200% 200%;
-  animation: ${gradientShift} 8s ease infinite;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 80px rgba(0, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-`;
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
 
-const HeaderContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
+    const particleCount = 200;
+    const particles = [];
 
-const HeaderTitle = styled.h1`
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #00ffff 0%, #ff00ff 50%, #fff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.5px;
-  text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-  background-size: 200% 200%;
-  animation: ${gradientShift} 5s ease infinite;
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2.5 + 0.8,
+        dx: (Math.random() - 0.5) * 0.8,
+        dy: (Math.random() - 0.5) * 0.8,
+      });
+    }
 
-  @media (max-width: 640px) {
-    font-size: 1.5rem;
-  }
-`;
+    const handleMouseMove = (e) => {
+      mouse.current.x = e.clientX;
+      mouse.current.y = e.clientY;
+    };
+    window.addEventListener("mousemove", handleMouseMove);
 
-const FilterButton = styled(motion.button)`
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  border: 2px solid rgba(0, 255, 255, 0.4);
-  cursor: pointer;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  color: #00ffff;
-  font-weight: 700;
-  font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.05);
+    const animate = () => {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  &:hover {
-    background: rgba(0, 255, 255, 0.1);
-    border-color: rgba(0, 255, 255, 0.8);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 30px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(0, 255, 255, 0.1);
-    color: #fff;
-  }
+      particles.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "#FF6EC7";
+        ctx.fill();
 
-  &:active {
-    transform: translateY(0);
-  }
-`;
+        p.x += p.dx;
+        p.y += p.dy;
 
-const BubbleMenuContainer = styled(motion.div)`
-  position: absolute;
-  top: 80px;
-  right: 2rem;
-  z-index: 200;
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
 
-  @media (max-width: 640px) {
-    right: 1rem;
-  }
-`;
+        if (mouse.current.x != null && mouse.current.y != null) {
+          const distX = p.x - mouse.current.x;
+          const distY = p.y - mouse.current.y;
+          const distance = Math.sqrt(distX * distX + distY * distY);
 
-const BubbleMenuBox = styled(motion.div)`
-  background: rgba(10, 10, 10, 0.95);
-  backdrop-filter: blur(20px);
-  padding: 0.75rem;
-  border-radius: 20px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(0, 255, 255, 0.2),
-    inset 0 0 40px rgba(0, 255, 255, 0.05);
-  border: 1px solid rgba(0, 255, 255, 0.2);
-`;
+          if (distance < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(209,71,255,${1 - distance / 120})`;
+            ctx.lineWidth = 2.5;
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.current.x, mouse.current.y);
+            ctx.stroke();
+          }
+        }
+      });
 
-const BubbleItem = styled(motion.button)`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 15px;
-  background: ${props => props.$active
-    ? "linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2))"
-    : "transparent"};
-  color: ${props => props.$active ? "#fff" : "#aaa"};
-  border: ${props => props.$active ? "1px solid rgba(0, 255, 255, 0.4)" : "1px solid transparent"};
-  cursor: pointer;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
-  text-align: left;
+      rafId = requestAnimationFrame(animate);
+    };
 
-  &:last-child {
-    margin-bottom: 0;
-  }
+    animate();
 
-  &:hover {
-    background: ${props => props.$active
-      ? "linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3))"
-      : "rgba(0, 255, 255, 0.1)"};
-    transform: translateX(5px);
-    color: #fff;
-    border-color: rgba(0, 255, 255, 0.4);
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-  }
-`;
+    const handleResize = () => {
+      resizeCanvas();
+    };
+    window.addEventListener("resize", handleResize);
 
-const BubbleIcon = styled.span`
-  font-size: 1.4rem;
-  filter: drop-shadow(0 0 8px currentColor);
-`;
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("resize", handleResize);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
-const TabsContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  padding: 2rem 1rem 1rem;
-  gap: 1rem;
-  position: relative;
-  z-index: 1;
-`;
+  return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none" />;
+};
 
-const TabButton = styled(motion.button)`
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
-  border: 2px solid ${props => props.$active
-    ? "rgba(0, 255, 255, 0.6)"
-    : "rgba(255, 255, 255, 0.1)"};
-  cursor: pointer;
-  background: ${props => props.$active
-    ? "linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2))"
-    : "rgba(20, 20, 20, 0.6)"};
-  backdrop-filter: blur(10px);
-  color: ${props => props.$active ? "#fff" : "#888"};
-  font-weight: 700;
-  font-size: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: ${props => props.$active
-    ? "0 8px 30px rgba(0, 255, 255, 0.3), inset 0 0 30px rgba(0, 255, 255, 0.1)"
-    : "0 4px 15px rgba(0, 0, 0, 0.5)"};
-  position: relative;
-  overflow: hidden;
+const Sidebar = ({ open, setOpen }) => {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [open]);
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-    transition: left 0.6s;
-  }
+  if (!open) return null;
 
-  &:hover::before {
-    left: 100%;
-  }
+  return (
+    <>
+      <div
+        className="fixed inset-0 bg-black/70 z-[140] transition-opacity"
+        style={{
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? 'auto' : 'none'
+        }}
+        onClick={() => setOpen(false)}
+      />
 
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 40px rgba(0, 255, 255, 0.4);
-    border-color: rgba(0, 255, 255, 0.8);
-    color: #fff;
-  }
+      <div
+        className="fixed top-0 left-0 h-full w-80 bg-[#1a2332] backdrop-blur-xl shadow-2xl z-[150] transition-transform duration-300 border-r border-[#2d3b4e]"
+        style={{
+          transform: open ? 'translateX(0)' : 'translateX(-100%)'
+        }}
+      >
+        <div className="p-6 h-full flex flex-col">
+          <button
+            onClick={() => setOpen(false)}
+            className="self-end mb-6 text-gray-400 bg-transparent border-none text-2xl cursor-pointer transition-all hover:text-white p-2"
+          >
+            ✕
+          </button>
 
-  &:active {
-    transform: translateY(-1px);
-  }
-`;
+          <nav className="flex-1">
+            <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent">
+              Navigation
+            </h3>
+            <ul className="list-none p-0 m-0 flex flex-col gap-3">
+              <li>
+                <a href="/" className="flex items-center gap-3 py-2.5 px-4 rounded-lg bg-transparent text-gray-400 border border-transparent cursor-pointer font-semibold text-sm transition-all no-underline hover:bg-gradient-to-r hover:from-pink-500/15 hover:to-purple-600/15 hover:text-white hover:border-pink-500/30">
+                  <span className="text-xl">🏠</span> Home
+                </a>
+              </li>
+              <li>
+                <a href="/about" className="flex items-center gap-3 py-2.5 px-4 rounded-lg bg-transparent text-gray-400 border border-transparent cursor-pointer font-semibold text-sm transition-all no-underline hover:bg-gradient-to-r hover:from-pink-500/15 hover:to-purple-600/15 hover:text-white hover:border-pink-500/30">
+                  <span className="text-xl">ℹ️</span> About
+                </a>
+              </li>
+              <li>
+                <a href="/contact" className="flex items-center gap-3 py-2.5 px-4 rounded-lg bg-transparent text-gray-400 border border-transparent cursor-pointer font-semibold text-sm transition-all no-underline hover:bg-gradient-to-r hover:from-pink-500/15 hover:to-purple-600/15 hover:text-white hover:border-pink-500/30">
+                  <span className="text-xl">📞</span> Contact
+                </a>
+              </li>
+              <li>
+                <a href="/events" className="flex items-center gap-3 py-2.5 px-4 rounded-lg bg-transparent text-gray-400 border border-transparent cursor-pointer font-semibold text-sm transition-all no-underline hover:bg-gradient-to-r hover:from-pink-500/15 hover:to-purple-600/15 hover:text-white hover:border-pink-500/30">
+                  <span className="text-xl">📅</span> Events
+                </a>
+              </li>
+            </ul>
+          </nav>
 
-const EventsGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    padding: 1rem;
-    gap: 1.5rem;
-  }
-`;
-
-const EventCardContainer = styled(motion.div)`
-  background: rgba(15, 15, 15, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.05), rgba(255, 0, 255, 0.05));
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  &:hover::before {
-    opacity: 1;
-  }
-
-  &:hover {
-    border-color: rgba(0, 255, 255, 0.3);
-    box-shadow: 0 12px 48px rgba(0, 255, 255, 0.2), 0 0 80px rgba(0, 255, 255, 0.1);
-  }
-`;
-
-const EventImageContainer = styled.div`
-  position: relative;
-  overflow: hidden;
-  height: 220px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.9) 100%);
-    z-index: 2;
-  }
-`;
-
-const EventImage = styled(motion.img)`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-`;
-
-const CategoryBadge = styled.div`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
-  backdrop-filter: blur(10px);
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 255, 0.3);
-  border: 1px solid rgba(0, 255, 255, 0.4);
-`;
-
-const EventContent = styled.div`
-  padding: 1.75rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 2;
-`;
-
-const EventTitle = styled.h3`
-  margin: 0 0 0.75rem 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.3;
-  letter-spacing: -0.3px;
-`;
-
-const EventMeta = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-`;
-
-const EventDate = styled.p`
-  margin: 0;
-  font-weight: 600;
-  color: #aaa;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &::before {
-    content: '📅';
-  }
-`;
-
-const EventVenue = styled.p`
-  margin: 0;
-  font-weight: 500;
-  color: #888;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &::before {
-    content: '📍';
-  }
-`;
-
-const EventDescription = styled.p`
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin: 0 0 1rem 0;
-  color: #bbb;
-  flex: 1;
-`;
-
-const CountdownContainer = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  margin: 1rem 0;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 15px;
-  border: 1px solid rgba(0, 255, 255, 0.2);
-  box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.05);
-`;
-
-const TimeUnit = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-`;
-
-const DigitContainer = styled(motion.div)`
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
-  color: #fff;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-  font-size: 1.25rem;
-  font-weight: 700;
-  min-width: 45px;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.1);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-`;
-
-const UnitLabel = styled.span`
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`;
-
-const Separator = styled.span`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #00ffff;
-  align-self: center;
-  padding-top: 0.5rem;
-  animation: ${float} 2s ease-in-out infinite;
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-`;
-
-const ActionButton = styled(motion.button)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.75rem;
-  border-radius: 50px;
-  border: 2px solid rgba(0, 255, 255, 0.4);
-  cursor: pointer;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
-  color: #fff;
-  font-weight: 700;
-  font-size: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.05);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: ${shimmer} 3s infinite;
-  }
-
-  &:hover {
-    box-shadow: 0 8px 30px rgba(0, 255, 255, 0.5), inset 0 0 30px rgba(0, 255, 255, 0.2);
-    transform: translateY(-2px);
-    border-color: rgba(0, 255, 255, 0.8);
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-`;
-
-const BackToTop = styled(motion.button)`
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
-  color: #fff;
-  border: 2px solid rgba(0, 255, 255, 0.5);
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  font-size: 1.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 8px 30px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(0, 255, 255, 0.1);
-  z-index: 150;
-  backdrop-filter: blur(10px);
-
-  &:hover {
-    box-shadow: 0 12px 40px rgba(0, 255, 255, 0.6), inset 0 0 30px rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.8);
-  }
-`;
-
-const EmptyState = styled(motion.div)`
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
-  font-size: 1.1rem;
-  grid-column: 1 / -1;
-
-  &::before {
-    content: '🔍';
-    display: block;
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.3;
-    animation: ${pulse} 2s ease-in-out infinite;
-  }
-`;
+          <div className="mt-6 pt-4 border-t border-[#2d3b4e] text-center text-xs text-gray-500">
+            © 2025 E-Nexus Tech Club
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
 
 const CountdownTimer = ({ targetDate }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -665,34 +299,42 @@ const CountdownTimer = ({ targetDate }) => {
 
   const formatNumber = (num) => num.toString().padStart(2, "0");
 
-  const TimeUnitComp = ({ value, label }) => (
-    <TimeUnit>
-      <DigitContainer
-        key={value}
-        initial={{ scale: 1.2, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
-      >
-        {formatNumber(value)}
-      </DigitContainer>
-      <UnitLabel>{label}</UnitLabel>
-    </TimeUnit>
-  );
-
   return (
-    <CountdownContainer>
-      <TimeUnitComp value={timeLeft.days} label="Days" />
-      <Separator>:</Separator>
-      <TimeUnitComp value={timeLeft.hours} label="Hours" />
-      <Separator>:</Separator>
-      <TimeUnitComp value={timeLeft.minutes} label="Mins" />
-      <Separator>:</Separator>
-      <TimeUnitComp value={timeLeft.seconds} label="Secs" />
-    </CountdownContainer>
+    <div className="flex gap-2 my-3 p-3 bg-[#0f1822] rounded-xl border border-[#2d3b4e]">
+      <div className="flex-1 flex flex-col items-center gap-1">
+        <div className="bg-gradient-to-br from-[#2d3b4e] to-[#1a2332] text-white py-2 px-2.5 rounded-lg font-mono text-lg font-bold min-w-[42px] text-center border border-[#3d4b5e]">
+          {formatNumber(timeLeft.days)}
+        </div>
+        <span className="text-[0.65rem] font-medium text-gray-500 uppercase tracking-wide">Days</span>
+      </div>
+      <span className="text-xl font-bold text-gray-600 self-center">:</span>
+      <div className="flex-1 flex flex-col items-center gap-1">
+        <div className="bg-gradient-to-br from-[#2d3b4e] to-[#1a2332] text-white py-2 px-2.5 rounded-lg font-mono text-lg font-bold min-w-[42px] text-center border border-[#3d4b5e]">
+          {formatNumber(timeLeft.hours)}
+        </div>
+        <span className="text-[0.65rem] font-medium text-gray-500 uppercase tracking-wide">Hours</span>
+      </div>
+      <span className="text-xl font-bold text-gray-600 self-center">:</span>
+      <div className="flex-1 flex flex-col items-center gap-1">
+        <div className="bg-gradient-to-br from-[#2d3b4e] to-[#1a2332] text-white py-2 px-2.5 rounded-lg font-mono text-lg font-bold min-w-[42px] text-center border border-[#3d4b5e]">
+          {formatNumber(timeLeft.minutes)}
+        </div>
+        <span className="text-[0.65rem] font-medium text-gray-500 uppercase tracking-wide">Mins</span>
+      </div>
+      <span className="text-xl font-bold text-gray-600 self-center">:</span>
+      <div className="flex-1 flex flex-col items-center gap-1">
+        <div className="bg-gradient-to-br from-[#2d3b4e] to-[#1a2332] text-white py-2 px-2.5 rounded-lg font-mono text-lg font-bold min-w-[42px] text-center border border-[#3d4b5e]">
+          {formatNumber(timeLeft.seconds)}
+        </div>
+        <span className="text-[0.65rem] font-medium text-gray-500 uppercase tracking-wide">Secs</span>
+      </div>
+    </div>
   );
 };
 
-const EventCard = ({ event, index, isPast = false }) => {
+const EventCard = ({ event, isPast = false }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-US", {
       weekday: "long",
@@ -708,87 +350,61 @@ const EventCard = ({ event, index, isPast = false }) => {
     });
 
   return (
-    <EventCardContainer
-      initial={{ opacity: 0, y: 50, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{
-        duration: 0.5,
-        delay: index * 0.1,
-        ease: [0.4, 0, 0.2, 1],
-      }}
-      whileHover={{
-        y: -12,
-        scale: 1.02,
-        transition: { duration: 0.3, type: "spring", stiffness: 300 },
-      }}
+    <div
+      className="bg-[#1a2332] rounded-2xl overflow-hidden flex flex-col border border-[#2d3b4e] transition-all duration-300 relative shadow-lg hover:border-pink-500/40 hover:shadow-[0_8px_32px_rgba(255,110,199,0.15)] hover:-translate-y-2"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <EventImageContainer>
-        <EventImage
+      <div className="relative overflow-hidden h-48">
+        <img
           src={event.image}
           alt={event.title}
-          whileHover={{ scale: 1.15 }}
-          transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+          className="w-full h-full object-cover transition-transform duration-500"
+          style={{
+            transform: isHovered ? 'scale(1.08)' : 'scale(1)'
+          }}
         />
-        <CategoryBadge>{event.category}</CategoryBadge>
-      </EventImageContainer>
+        <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 z-[2]" />
+        <div className="absolute top-3 right-3 z-10 bg-gradient-to-br from-pink-500/90 to-purple-600/90 py-1.5 px-4 rounded-full font-bold text-[0.7rem] uppercase tracking-wider shadow-lg">
+          {event.category}
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#1a2332] to-transparent p-4">
+          <h3 className="m-0 text-xl font-bold text-white leading-tight drop-shadow-lg">
+            {event.title}
+          </h3>
+        </div>
+      </div>
 
-      <EventContent>
-        <EventTitle>{event.title}</EventTitle>
-        <EventMeta>
-          <EventDate>
-            {formatDate(event.date)} at {formatTime(event.date)}
-          </EventDate>
-          <EventVenue>{event.venue}</EventVenue>
-        </EventMeta>
-        <EventDescription>{event.description}</EventDescription>
+      <div className="p-6 flex-1 flex flex-col relative z-[2]">
+        <div className="flex flex-col gap-2 mb-3">
+          <p className="m-0 font-medium text-gray-400 text-sm flex items-center gap-2">
+            📅 {formatDate(event.date)} at {formatTime(event.date)}
+          </p>
+          <p className="m-0 font-medium text-gray-500 text-sm flex items-center gap-2">
+            📍 {event.venue}
+          </p>
+        </div>
+        <p className="text-sm leading-relaxed m-0 mb-4 text-gray-400 flex-1">
+          {event.description}
+        </p>
         <CountdownTimer targetDate={event.date} />
-        <ActionButton whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <FiEye size={20} /> {isPast ? "View Highlights" : "Register Now"}
-        </ActionButton>
-      </EventContent>
-    </EventCardContainer>
-  );
-};
-
-
-const BackToTopButton = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const toggleVisibility = () => setIsVisible(window.pageYOffset > 400);
-    window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
-  }, []);
-
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <BackToTop
-          onClick={scrollToTop}
-          initial={{ opacity: 0, scale: 0, rotate: -180 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          exit={{ opacity: 0, scale: 0, rotate: 180 }}
-          whileHover={{ scale: 1.15, y: -5 }}
-          whileTap={{ scale: 0.9 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        >
-          <FiArrowUp />
-        </BackToTop>
-      )}
-    </AnimatePresence>
+        <button className="flex items-center justify-center gap-2 py-3 px-6 rounded-xl cursor-pointer bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-sm transition-all shadow-md hover:shadow-lg hover:from-pink-600 hover:to-purple-700 hover:-translate-y-0.5">
+          {isPast ? "View Highlights" : "Register Now"}
+        </button>
+      </div>
+    </div>
   );
 };
 
 const BubbleMenu = ({ isOpen, onClose, onFilterSelect, activeFilter, triggerRef }) => {
+  const [hoveredId, setHoveredId] = useState(null);
+
   const filterOptions = [
     { id: "all", label: "All Events", icon: "🎯" },
-    { id: "workshops", label: "Workshops", icon: "🛠️" },
-    { id: "hackathons", label: "Hackathons", icon: "💻" },
-    { id: "techtalks", label: "Tech Talks", icon: "🎤" },
-    { id: "fests", label: "Fests", icon: "🎉" }
+    { id: "Workshops", label: "Workshops", icon: "🛠️" },
+    { id: "Hackathons", label: "Hackathons", icon: "💻" },
+    { id: "Tech Talks", label: "Tech Talks", icon: "🎤" },
+    { id: "Fests", label: "Fests", icon: "🎉" }
   ];
 
   useEffect(() => {
@@ -806,94 +422,112 @@ const BubbleMenu = ({ isOpen, onClose, onFilterSelect, activeFilter, triggerRef 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose, triggerRef]);
 
-  const containerVariants = {
-    hidden: { scale: 0, opacity: 0, y: -20 },
-    visible: {
-      scale: 1,
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 25,
-        staggerChildren: 0.08,
-        delayChildren: 0.1
-      }
-    },
-    exit: {
-      scale: 0,
-      opacity: 0,
-      y: -20,
-      transition: { duration: 0.2 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { x: -20, opacity: 0 },
-    visible: {
-      x: 0,
-      opacity: 1,
-      transition: { type: "spring", stiffness: 300, damping: 25 }
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <BubbleMenuContainer
-          className="bubble-menu-container"
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          variants={containerVariants}
-        >
-          <BubbleMenuBox>
-            {filterOptions.map((option) => (
-              <BubbleItem
-                key={option.id}
-                $active={activeFilter === option.id}
-                onClick={() => {
-                  onFilterSelect(option.id);
-                  onClose();
-                }}
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <BubbleIcon>{option.icon}</BubbleIcon> {option.label}
-              </BubbleItem>
-            ))}
-          </BubbleMenuBox>
-        </BubbleMenuContainer>
-      )}
-    </AnimatePresence>
+    <div className="bubble-menu-container absolute top-16 right-8 z-[200]">
+      <div className="bg-[#1a2332] backdrop-blur-xl p-2 rounded-xl shadow-xl border border-[#2d3b4e]">
+        {filterOptions.map((option) => {
+          const isActive = activeFilter === option.id;
+          const isHovered = hoveredId === option.id;
+
+          return (
+            <button
+              key={option.id}
+              className="flex items-center gap-3 py-2.5 px-4 rounded-lg bg-transparent text-gray-400 border border-transparent cursor-pointer mb-1.5 last:mb-0 font-semibold text-sm transition-all w-full text-left"
+              style={{
+                background: isActive || isHovered ? 'linear-gradient(to right, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15))' : 'transparent',
+                color: isActive || isHovered ? '#fff' : '#9ca3af',
+                borderColor: isActive || isHovered ? 'rgba(236, 72, 153, 0.3)' : 'transparent'
+              }}
+              onClick={() => {
+                onFilterSelect(option.id);
+                onClose();
+              }}
+              onMouseEnter={() => setHoveredId(option.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <span className="text-xl">{option.icon}</span> {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
-const Header = ({ isMenuOpen, setIsMenuOpen, onFilterSelect, activeFilter }) => {
+const Header = ({ searchQuery, setSearchQuery, setSidebarOpen, isMenuOpen, setIsMenuOpen }) => {
   const filterButtonRef = useRef(null);
 
   return (
-    <HeaderContainer>
-      <HeaderContent>
-        <HeaderTitle>E-Nexus Events</HeaderTitle>
-        <FilterButton
-          ref={filterButtonRef}
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Filter Events
-        </FilterButton>
-        <BubbleMenu
-          isOpen={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          onFilterSelect={onFilterSelect}
-          activeFilter={activeFilter}
-          triggerRef={filterButtonRef}
-        />
-      </HeaderContent>
-    </HeaderContainer>
+    <header className="sticky top-0 z-[100] backdrop-blur-xl bg-[#0a0e14]/95 py-5 px-8 shadow-lg border-b border-[#1a2332]">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        
+        {/* Left Section */}
+        <div className="flex items-center gap-3 min-w-[220px]">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="py-2.5 px-4 rounded-lg cursor-pointer bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xl transition-all hover:from-pink-600 hover:to-purple-700 hover:shadow-lg"
+          >
+            ☰
+          </button>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent">
+            E-Nexus Events
+          </h1>
+        </div>
+
+        {/* Center Section */}
+        <div className="flex-1 flex justify-center">
+          <div className="relative w-full max-w-lg">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Search events..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full py-2.5 pl-11 pr-4 rounded-lg bg-[#1a2332] border border-[#2d3b4e] text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex justify-end min-w-[180px]">
+          <button
+            ref={filterButtonRef}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="py-2.5 px-5 rounded-lg cursor-pointer bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm transition-all hover:from-pink-600 hover:to-purple-700 hover:shadow-lg whitespace-nowrap"
+          >
+            Filter Events
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+const BackToTopButton = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => setIsVisible(window.pageYOffset > 400);
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  if (!isVisible) return null;
+
+  return (
+    <button
+      onClick={scrollToTop}
+      className="fixed bottom-8 right-8 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full w-[50px] h-[50px] cursor-pointer text-xl flex justify-center items-center shadow-lg z-[150] transition-all hover:from-pink-600 hover:to-purple-700 hover:shadow-xl hover:scale-105"
+    >
+      ↑
+    </button>
   );
 };
 
@@ -901,98 +535,101 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getFilteredEvents = (events) => {
-    if (activeFilter === "all") return events;
-    return events.filter(
-      (event) => event.category.toLowerCase() === activeFilter.toLowerCase()
-    );
+    let filtered = events;
+
+    if (activeFilter !== "all") {
+      filtered = filtered.filter((event) => event.category === activeFilter);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (event) =>
+          event.title.toLowerCase().includes(query) ||
+          event.description.toLowerCase().includes(query) ||
+          event.venue.toLowerCase().includes(query) ||
+          event.category.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
   };
 
   const filteredUpcoming = getFilteredEvents(upcomingEvents);
   const filteredPast = getFilteredEvents(pastEvents);
 
   return (
-    <>
-      <GlobalStyle />
-      <PageContainer>
-        <Header
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-          onFilterSelect={setActiveFilter}
-          activeFilter={activeFilter}
-        />
+    <div className="min-h-screen pb-16 relative bg-[#0a0e14] text-white font-['Inter','-apple-system','BlinkMacSystemFont','Segoe_UI','sans-serif']">
+      <ParticleBackground />
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
-        <TabsContainer>
-          <TabButton
-            $active={activeTab === "upcoming"}
-            onClick={() => setActiveTab("upcoming")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Upcoming Events
-          </TabButton>
-          <TabButton
-            $active={activeTab === "past"}
-            onClick={() => setActiveTab("past")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Past Events
-          </TabButton>
-        </TabsContainer>
+      <Header
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        onFilterSelect={setActiveFilter}
+        activeFilter={activeFilter}
+        setSidebarOpen={setSidebarOpen}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
 
-        <AnimatePresence mode="wait">
-          {activeTab === "upcoming" ? (
-            <EventsGrid
-              key="upcoming"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            >
-              {filteredUpcoming.length > 0 ? (
-                filteredUpcoming.map((event, index) => (
-                  <EventCard key={event.id} event={event} index={index} />
-                ))
-              ) : (
-                <EmptyState
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  No events found for this filter
-                </EmptyState>
-              )}
-            </EventsGrid>
+      <div className="flex justify-center py-6 px-4 gap-3 relative z-[1]">
+        <button
+          className="py-2.5 px-6 rounded-lg border cursor-pointer font-semibold text-sm transition-all"
+          style={{
+            border: activeTab === "upcoming" ? '1px solid rgba(236, 72, 153, 0.5)' : '1px solid #2d3b4e',
+            background: activeTab === "upcoming" ? 'linear-gradient(to right, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15))' : '#1a2332',
+            color: activeTab === "upcoming" ? '#fff' : '#9ca3af'
+          }}
+          onClick={() => setActiveTab("upcoming")}
+        >
+          Upcoming Events
+        </button>
+        <button
+          className="py-2.5 px-6 rounded-lg border cursor-pointer font-semibold text-sm transition-all"
+          style={{
+            border: activeTab === "past" ? '1px solid rgba(236, 72, 153, 0.5)' : '1px solid #2d3b4e',
+            background: activeTab === "past" ? 'linear-gradient(to right, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15))' : '#1a2332',
+            color: activeTab === "past" ? '#fff' : '#9ca3af'
+          }}
+          onClick={() => setActiveTab("past")}
+        >
+          Past Events
+        </button>
+      </div>
+
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-8 p-8 max-w-7xl mx-auto relative z-[1]">
+        {activeTab === "upcoming" ? (
+          filteredUpcoming.length > 0 ? (
+            filteredUpcoming.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))
           ) : (
-            <EventsGrid
-              key="past"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            >
-              {filteredPast.length > 0 ? (
-                filteredPast.map((event, index) => (
-                  <EventCard key={event.id} event={event} index={index} />
-                ))
-              ) : (
-                <EmptyState
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  No events found for this filter
-                </EmptyState>
-              )}
-            </EventsGrid>
-          )}
-        </AnimatePresence>
+            <div className="text-center py-16 px-8 text-gray-600 text-lg col-span-full">
+              🔍
+              <p>No events found for this filter</p>
+            </div>
+          )
+        ) : (
+          filteredPast.length > 0 ? (
+            filteredPast.map((event) => (
+              <EventCard key={event.id} event={event} isPast={true} />
+            ))
+          ) : (
+            <div className="text-center py-16 px-8 text-gray-600 text-lg col-span-full">
+              🔍
+              <p>No events found for this filter</p>
+            </div>
+          )
+        )}
+      </div>
 
-        <BackToTopButton />
-      </PageContainer>
-    </>
+      <BackToTopButton />
+    </div>
   );
 }
 
